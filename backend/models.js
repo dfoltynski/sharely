@@ -1,0 +1,56 @@
+const mongoose = require("mongoose");
+const { strict, string } = require("joi");
+const Schema = mongoose.Schema;
+
+const requiredString = {
+    type: String,
+    required: true,
+};
+
+const UserSchema = new Schema(
+    {
+        name: requiredString,
+        email: requiredString,
+        password: requiredString,
+        avatar_url: { type: String },
+    },
+    {
+        timestamps: { createdAt: "created_at", updatedAt: "updated_at" },
+    }
+);
+
+const UserOpinionsSchema = new Schema(
+    {
+        lnglat: [],
+        stars: [],
+        comments: [],
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "user",
+        },
+    },
+    {
+        timestamps: { createdAt: "created_at", updatedAt: "updated_at" },
+    }
+);
+
+const MarkupLocationSchema = new Schema(
+    {
+        lnglat: [],
+        stars: [],
+        comments: [],
+    },
+    {
+        timestamps: { createdAt: "created_at", updatedAt: "updated_at" },
+    }
+);
+
+const User = mongoose.model("user", UserSchema);
+const UserOpinions = mongoose.model("user_opinions", UserOpinionsSchema);
+const MarkupLocation = mongoose.model("markup_locations", MarkupLocationSchema);
+
+module.exports = {
+    User,
+    UserOpinions,
+    MarkupLocation,
+};
