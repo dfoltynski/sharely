@@ -150,3 +150,11 @@ export const Name = styled.div`
 export const Stars = styled.div`
     font-size: 12px;
 `;
+
+export const MessageBox = styled.div`
+    width: 10em;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+`;

@@ -21,9 +21,10 @@ const UserSchema = new Schema(
 
 const UserOpinionsSchema = new Schema(
     {
-        lnglat: [],
-        stars: [],
-        comments: [],
+        // lnglat: [],
+        // stars: [],
+        // comments: [],
+        markup: [],
         user: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "user",
@@ -36,9 +37,7 @@ const UserOpinionsSchema = new Schema(
 
 const MarkupLocationSchema = new Schema(
     {
-        lnglats: [],
-        stars: [],
-        comments: [],
+        markup: {},
     },
     {
         timestamps: { createdAt: "created_at", updatedAt: "updated_at" },

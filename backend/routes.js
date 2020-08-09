@@ -15,7 +15,7 @@ router.post("/login", loginUserController);
 
 router.get("/auth-me", checkTokenSetUser, authToken);
 
-router.post("/post-pins-to-db", pushPinsToDb);
+router.post("/push-pins-to-db", pushPinsToDb);
 router.get("/list-all-markups", listAllMarkups);
 
 module.exports = router;

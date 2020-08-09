@@ -94,13 +94,16 @@ exports.loginUserController = async (req, res) => {
 exports.pushPinsToDb = async (req, res) => {
     const { lnglats, comments, stars } = req.body;
 
+    // return MarkupLocation.create({
+    // markup: [{ lnglats, comments, stars }],
+    // }).then((docMarkup) => {
+    // return docMarkup;
+    // });
     await MarkupLocation.updateMany(
         {},
         {
             $push: {
-                lnglats,
-                comments,
-                stars,
+                markup: { lnglats, comments, stars },
             },
         },
         { new: true, useFindAndModify: false }

@@ -1,24 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
 import ReactMapGL, { Marker, Popup, NavigationControl } from "react-map-gl";
 import {
-    Wrapper,
-    LogoStyle,
-    LogoContainer,
     FormContainer,
     InputText,
     InputSubmit,
     Form,
     SearchPanel,
     SearchInput,
-    SearchIconStyle,
     SimpleButton,
     SendIconStyle,
     Markup,
     LogoutButton,
-    Message,
-    Name,
-    Stars,
     TextArea,
+    MessageBox,
 } from "./styledcomponents";
 import axios from "axios";
 
@@ -30,6 +24,7 @@ const MapPage = () => {
     const starsCount = useRef(null);
     const email = localStorage.getItem("email");
     const [showPopup, setShowPopup] = useState(true);
+    const [showMessage, setShowMessage] = useState({});
     const [viewport, setViewport] = useState({
         width: "100vw",
         height: "100vh",
@@ -38,13 +33,14 @@ const MapPage = () => {
         zoom: 8,
     });
     const [pointsOnMap, setPointOnMap] = useState(null);
+    const [markups, setMarkups] = useState([]);
 
     const addPointOnMap = (e) => {
         e.preventDefault();
         console.log(messageValue.current.value);
         console.log(starsCount.current.value);
 
-        axios.post(`${api_url}/post-pins-to-db`, {
+        axios.post(`${api_url}/push-pins-to-db`, {
             lnglats: pointsOnMap,
             comments: messageValue.current.value,
             stars: starsCount.current.value,
@@ -71,8 +67,7 @@ const MapPage = () => {
 
     const getAllMarkups = async () => {
         let res = await axios.get(`${api_url}/list-all-markups`);
-
-        console.log(res.data.info[0]);
+        setMarkups(res.data.info[0].markup);
     };
 
     useEffect(() => {
@@ -196,6 +191,54 @@ const MapPage = () => {
                         </Popup>
                     </>
                 ) : null}
+
+                {markups.map((markup) => (
+                    <React.Fragment key={markup.lnglats.latitude}>
+                        <Marker
+                            latitude={markup.lnglats.latitude}
+                            longitude={markup.lnglats.longitude}
+                        >
+                            <Markup
+                                onClick={() =>
+                                    setShowMessage({
+                                        [markup.lnglats.latitude]: true,
+                                    })
+                                }
+                                style={{
+                                    height: `${3 * viewport.zoom}px`,
+                                    width: `${3 * viewport.zoom}px`,
+                                }}
+                            ></Markup>
+                        </Marker>
+                        {showMessage[markup.lnglats.latitude] ? (
+                            <Popup
+                                latitude={markup.lnglats.latitude}
+                                longitude={markup.lnglats.longitude}
+                                offsetLeft={-4}
+                                offsetTop={15}
+                                dynamicPosition={true}
+                                closeButton={true}
+                                closeOnClick={false}
+                                onClose={() =>
+                                    setShowMessage({
+                                        [markup.lnglats.latitude]: false,
+                                    })
+                                }
+                                anchor="top"
+                                style={{
+                                    height: `${3 * viewport.zoom}px`,
+                                    width: `${3 * viewport.zoom}px`,
+                                }}
+                            >
+                                <MessageBox>
+                                    {" * ".repeat(markup.stars)}
+                                    <br></br>
+                                    {markup.comments}
+                                </MessageBox>
+                            </Popup>
+                        ) : null}
+                    </React.Fragment>
+                ))}
 
                 <div style={{ position: "absolute", right: 0 }}>
                     <NavigationControl />
