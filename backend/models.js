@@ -36,7 +36,7 @@ const UserOpinionsSchema = new Schema(
 
 const MarkupLocationSchema = new Schema(
     {
-        lnglat: [],
+        lnglats: [],
         stars: [],
         comments: [],
     },

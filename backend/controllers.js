@@ -91,4 +91,25 @@ exports.loginUserController = async (req, res) => {
     }
 };
 
-exports.pushPinsToDb = async (req, res) => {};
+exports.pushPinsToDb = async (req, res) => {
+    const { lnglats, comments, stars } = req.body;
+
+    await MarkupLocation.updateMany(
+        {},
+        {
+            $push: {
+                lnglats,
+                comments,
+                stars,
+            },
+        },
+        { new: true, useFindAndModify: false }
+    );
+
+    res.status(200);
+};
+
+exports.listAllMarkups = async (req, res) => {
+    const info = await MarkupLocation.find();
+    res.status(200).send({ info });
+};

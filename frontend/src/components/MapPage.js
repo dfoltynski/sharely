@@ -29,7 +29,7 @@ const MapPage = () => {
     const messageValue = useRef(null);
     const starsCount = useRef(null);
     const email = localStorage.getItem("email");
-    const [showPopup, setShowPopup] = useState(false);
+    const [showPopup, setShowPopup] = useState(true);
     const [viewport, setViewport] = useState({
         width: "100vw",
         height: "100vh",
@@ -43,8 +43,16 @@ const MapPage = () => {
         e.preventDefault();
         console.log(messageValue.current.value);
         console.log(starsCount.current.value);
+
+        axios.post(`${api_url}/post-pins-to-db`, {
+            lnglats: pointsOnMap,
+            comments: messageValue.current.value,
+            stars: starsCount.current.value,
+        });
+
         messageValue.current.value = "";
         starsCount.current.value = null;
+        setShowPopup(false);
     };
 
     const auth = async () => {
@@ -61,14 +69,21 @@ const MapPage = () => {
         }
     };
 
+    const getAllMarkups = async () => {
+        let res = await axios.get(`${api_url}/list-all-markups`);
+
+        console.log(res.data.info[0]);
+    };
+
     useEffect(() => {
         auth();
+        getAllMarkups();
     }, []);
 
     const searchLocation = (e) => {
         e.preventDefault();
+        console.log(`looking for ${searchBar.current.value}`);
         searchBar.current.value = "";
-        console.log("looking for given location");
     };
 
     if (!localStorage.getItem("token")) {
@@ -81,9 +96,10 @@ const MapPage = () => {
                 mapboxApiAccessToken="pk.eyJ1IjoiZHppYWRkYXdpZCIsImEiOiJja2EzMzRzZXMwN2ZoM2ZsOWFhZXdpeGt0In0.sRWxNOOhq4VLBER1For06g"
                 onViewportChange={(nextViewport) => setViewport(nextViewport)}
                 touchRotate={true}
-                onClick={(e) => {
+                onDblClick={(e) => {
                     const [longitude, latitude] = e.lngLat;
                     setPointOnMap({ longitude, latitude });
+                    setShowPopup(true);
                 }}
             >
                 <SearchPanel>
@@ -115,7 +131,7 @@ const MapPage = () => {
                     Logout
                 </LogoutButton>
 
-                {pointsOnMap ? (
+                {pointsOnMap && showPopup ? (
                     <>
                         <Marker
                             latitude={pointsOnMap.latitude}
@@ -138,7 +154,7 @@ const MapPage = () => {
                             offsetTop={15}
                             dynamicPosition={true}
                             closeButton={true}
-                            closeOnClick={true}
+                            closeOnClick={false}
                             onClose={() => setShowPopup(false)}
                             anchor="top"
                             style={{
@@ -161,6 +177,7 @@ const MapPage = () => {
                                     <InputText
                                         ref={starsCount}
                                         type="number"
+                                        placeholder="Stars..."
                                         max="5"
                                         min="0"
                                     ></InputText>
@@ -176,11 +193,6 @@ const MapPage = () => {
                                     ></InputSubmit>
                                 </Form>
                             </FormContainer>
-                            {/* <Message>
-                                <Name>Dawid</Name>
-                                <Stars>* * * * *</Stars>
-                                no zajebiscie bylo
-                            </Message> */}
                         </Popup>
                     </>
                 ) : null}
@@ -192,4 +204,5 @@ const MapPage = () => {
         );
     }
 };
+
 export default MapPage;
