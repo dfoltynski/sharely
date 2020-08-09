@@ -9,6 +9,8 @@
 -   [ ] BACKEND - controllers - pushPinsToDb - profile pic, visit day
 -   [ ] BACKEND - ??????
 
+-   [ ] BOTH - make it realtime - socketio and socket.io-client [e.g. markup display in real time]
+
 -   [ ] FRONTEND - register page - profile pic upload
 -   [ ] FRONTEND - map page - display profile pic
 -   [ ] FRONTEND - map page - prettier stars
