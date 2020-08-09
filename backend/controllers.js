@@ -40,15 +40,15 @@ exports.registerUserController = async (req, res) => {
         const email = await User.findOne({ email: req.body.email });
         if (!email) {
             createUser = () => {
-                const { name, email, password, avatar_url } = req.body;
+                // const url = req.protocol + "://" + req.get("host");
+                const { name, email, password } = req.body;
 
                 const hashedPassword = bcrypt.hashSync(password, saltRounds);
-
                 return User.create({
                     name,
                     email,
                     password: hashedPassword,
-                    avatar_url,
+                    // avatar_url: url + "/public/" + req.file.filename,
                 }).then((docUser) => {
                     console.log(docUser);
                     return docUser;
