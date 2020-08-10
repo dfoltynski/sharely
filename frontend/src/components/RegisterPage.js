@@ -16,6 +16,7 @@ const RegisterPage = () => {
     const [wrongEmail, setWrongEmail] = useState(false);
     const [shortName, setShortName] = useState(false);
     const [shortPassword, setShortPassword] = useState(false);
+    const [profilePic, setProfilePic] = useState(null);
 
     const email = useRef(null);
     const name = useRef(null);
@@ -46,8 +47,13 @@ const RegisterPage = () => {
         emailMatch ? setWrongEmail(false) : setWrongEmail(true);
     };
 
+    const onFileChange = (e) => {
+        setProfilePic(e.target.files);
+    };
+
     const Register = async (e) => {
         e.preventDefault();
+
         if (
             email.current.value.length > 0 &&
             name.current.value.length > 3 &&
@@ -138,7 +144,6 @@ const RegisterPage = () => {
                                 </span>
                             </small>
                         ) : null}
-
                         <InputSubmit
                             style={{ color: "#ffffff", fontWeight: "bold" }}
                             value="Register"

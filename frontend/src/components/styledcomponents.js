@@ -2,6 +2,13 @@ import styled from "styled-components";
 import { ReactComponent as Logo } from "../logo.svg";
 import { ReactComponent as SearchIcon } from "../search-location-solid.svg";
 import { ReactComponent as SendIcon } from "../paper-plane-solid.svg";
+import { ReactComponent as StarSolid } from "../star-solid.svg";
+import { ReactComponent as StarRegular } from "../star-regular.svg";
+
+export const StarSolidStyle = styled(StarSolid)`
+    color: gold;
+    width: 1em;
+`;
 
 export const Wrapper = styled.div`
     font-family: "Poppins", sans-serif;
@@ -152,9 +159,13 @@ export const Stars = styled.div`
 `;
 
 export const MessageBox = styled.div`
-    width: 10em;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    margin-top: 0.5em;
+    max-width: 15em;
+    padding: 1em 1.3em;
+    border-radius: 6px;
+    background-color: #ffffff;
 `;

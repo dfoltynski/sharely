@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import ReactMapGL, { Marker, Popup, NavigationControl } from "react-map-gl";
+import Geocoder from "react-mapbox-gl-geocoder";
+import ReactMapGL, { Marker, NavigationControl, Popup } from "react-map-gl";
+import axios from "axios";
+import _ from "lodash";
+
 import {
     FormContainer,
     InputText,
@@ -13,51 +17,39 @@ import {
     LogoutButton,
     TextArea,
     MessageBox,
+    StarSolidStyle,
 } from "./styledcomponents";
-import axios from "axios";
 
 const api_url = "http://localhost:8080/api";
 
 const MapPage = () => {
+    // const socket = socketIOClient("http://127.0.0.1:8080");
+
     const searchBar = useRef(null);
     const messageValue = useRef(null);
     const starsCount = useRef(null);
-    const email = localStorage.getItem("email");
+    const locationValue = useRef(null);
+    const [name, setName] = useState("");
     const [showPopup, setShowPopup] = useState(true);
     const [showMessage, setShowMessage] = useState({});
     const [viewport, setViewport] = useState({
         width: "100vw",
         height: "100vh",
-        latitude: 37.7577,
-        longitude: -122.4376,
-        zoom: 8,
+        latitude: 45.13600772929895,
+        longitude: 9.409537429857792,
+        zoom: 2.6,
     });
     const [pointsOnMap, setPointOnMap] = useState(null);
     const [markups, setMarkups] = useState([]);
 
-    const addPointOnMap = (e) => {
-        e.preventDefault();
-        console.log(messageValue.current.value);
-        console.log(starsCount.current.value);
-
-        axios.post(`${api_url}/push-pins-to-db`, {
-            lnglats: pointsOnMap,
-            comments: messageValue.current.value,
-            stars: starsCount.current.value,
-        });
-
-        messageValue.current.value = "";
-        starsCount.current.value = null;
-        setShowPopup(false);
-    };
-
     const auth = async () => {
         try {
-            await axios.get(`${api_url}/auth-me`, {
+            let res = await axios.get(`${api_url}/auth-me`, {
                 headers: {
                     "Authorization": `Bearer ${localStorage.getItem("token")}`,
                 },
             });
+            setName(res.data.name);
         } catch (err) {
             if (err) console.log(err);
             localStorage.clear();
@@ -70,16 +62,51 @@ const MapPage = () => {
         setMarkups(res.data.info[0].markup);
     };
 
+    const addPointOnMap = (e) => {
+        e.preventDefault();
+
+        axios.post(`${api_url}/push-pins-to-db`, {
+            name,
+            where: locationValue.current.value,
+            lnglats: pointsOnMap,
+            comments: messageValue.current.value,
+            stars: starsCount.current.value,
+        });
+
+        setMarkups([
+            ...markups,
+            {
+                name,
+                where: locationValue.current.value,
+                lnglats: pointsOnMap,
+                comments: messageValue.current.value,
+                stars: starsCount.current.value,
+            },
+        ]);
+
+        messageValue.current.value = "";
+        starsCount.current.value = null;
+        setShowPopup(false);
+    };
+
+    const searchLocation = async (e) => {
+        e.preventDefault();
+        let res = await axios.get(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${searchBar.current.value}.json?access_token=pk.eyJ1IjoiZHppYWRkYXdpZCIsImEiOiJja2EzMzRzZXMwN2ZoM2ZsOWFhZXdpeGt0In0.sRWxNOOhq4VLBER1For06g`
+        );
+        console.log(`looking for ${searchBar.current.value}`);
+        console.log(res);
+        searchBar.current.value = "";
+    };
+
+    const onSelected = (viewportt, item) => {
+        setViewport(viewportt);
+    };
+
     useEffect(() => {
         auth();
         getAllMarkups();
     }, []);
-
-    const searchLocation = (e) => {
-        e.preventDefault();
-        console.log(`looking for ${searchBar.current.value}`);
-        searchBar.current.value = "";
-    };
 
     if (!localStorage.getItem("token")) {
         window.location = "/login";
@@ -87,7 +114,7 @@ const MapPage = () => {
         return (
             <ReactMapGL
                 {...viewport}
-                mapStyle="mapbox://styles/dziaddawid/ckd7lt760035c1ipfw4chnhi3"
+                mapStyle="mapbox://styles/dziaddawid/ckdngdixm27l01in4ud1z8kpc"
                 mapboxApiAccessToken="pk.eyJ1IjoiZHppYWRkYXdpZCIsImEiOiJja2EzMzRzZXMwN2ZoM2ZsOWFhZXdpeGt0In0.sRWxNOOhq4VLBER1For06g"
                 onViewportChange={(nextViewport) => setViewport(nextViewport)}
                 touchRotate={true}
@@ -97,25 +124,13 @@ const MapPage = () => {
                     setShowPopup(true);
                 }}
             >
-                <SearchPanel>
-                    <Form onSubmit={searchLocation}>
-                        <SearchInput
-                            ref={searchBar}
-                            placeholder="Enter location..."
-                        ></SearchInput>
-                        <SimpleButton
-                            onClick={searchLocation}
-                            style={{
-                                position: "absolute",
-                                right: "0",
-                                backgroundColor: "#ffffff",
-                                borderLeft: "solid 1px #EDEDED",
-                            }}
-                        >
-                            <SendIconStyle></SendIconStyle>
-                        </SimpleButton>
-                    </Form>
-                </SearchPanel>
+                <Geocoder
+                    mapboxApiAccessToken="pk.eyJ1IjoiZHppYWRkYXdpZCIsImEiOiJja2EzMzRzZXMwN2ZoM2ZsOWFhZXdpeGt0In0.sRWxNOOhq4VLBER1For06g"
+                    onSelected={onSelected}
+                    viewport={viewport}
+                    hideOnSelect={true}
+                    limit={10}
+                />
 
                 <LogoutButton
                     onClick={() => {
@@ -160,9 +175,13 @@ const MapPage = () => {
                             <FormContainer>
                                 <Form onSubmit={addPointOnMap}>
                                     <InputText
-                                        value="Dawid"
+                                        value={name}
                                         disabled
                                         style={{ padding: "0.5em 1em" }}
+                                    ></InputText>
+                                    <InputText
+                                        ref={locationValue}
+                                        placeholder="Where have you been?"
                                     ></InputText>
                                     <TextArea
                                         ref={messageValue}
@@ -172,9 +191,9 @@ const MapPage = () => {
                                     <InputText
                                         ref={starsCount}
                                         type="number"
-                                        placeholder="Stars..."
+                                        placeholder="Rate 1-5 star"
                                         max="5"
-                                        min="0"
+                                        min="1"
                                     ></InputText>
                                     {/* replace with real stars */}
                                     <InputSubmit
@@ -192,8 +211,8 @@ const MapPage = () => {
                     </>
                 ) : null}
 
-                {markups.map((markup) => (
-                    <React.Fragment key={markup.lnglats.latitude}>
+                {markups.map((markup, index) => (
+                    <React.Fragment key={index}>
                         <Marker
                             latitude={markup.lnglats.latitude}
                             longitude={markup.lnglats.longitude}
@@ -201,42 +220,58 @@ const MapPage = () => {
                             <Markup
                                 onClick={() =>
                                     setShowMessage({
-                                        [markup.lnglats.latitude]: true,
+                                        [index]: !showMessage[index],
                                     })
                                 }
                                 style={{
+                                    zIndex: "-1",
                                     height: `${3 * viewport.zoom}px`,
                                     width: `${3 * viewport.zoom}px`,
                                 }}
                             ></Markup>
-                        </Marker>
-                        {showMessage[markup.lnglats.latitude] ? (
-                            <Popup
-                                latitude={markup.lnglats.latitude}
-                                longitude={markup.lnglats.longitude}
-                                offsetLeft={-4}
-                                offsetTop={15}
-                                dynamicPosition={true}
-                                closeButton={true}
-                                closeOnClick={false}
-                                onClose={() =>
-                                    setShowMessage({
-                                        [markup.lnglats.latitude]: false,
-                                    })
-                                }
-                                anchor="top"
-                                style={{
-                                    height: `${3 * viewport.zoom}px`,
-                                    width: `${3 * viewport.zoom}px`,
-                                }}
-                            >
+                            {showMessage[index] ? (
                                 <MessageBox>
-                                    {" * ".repeat(markup.stars)}
-                                    <br></br>
-                                    {markup.comments}
+                                    <div
+                                        style={{
+                                            width: "100%",
+                                            fontSize: "14px",
+                                        }}
+                                    >
+                                        {markup.name}
+                                    </div>
+                                    <div
+                                        style={{
+                                            width: "100%",
+                                            fontSize: "14px",
+                                        }}
+                                    >
+                                        {markup.where}
+                                    </div>
+                                    <div
+                                        style={{
+                                            width: "100%",
+                                            backgroundColor: "#ebebeb",
+                                            borderRadius: "6px",
+                                            border: "none",
+                                            padding: "1em 2em",
+                                            fontSize: "18px",
+                                            margin: "0.2em 0",
+                                        }}
+                                    >
+                                        {markup.comments}
+                                    </div>
+                                    <div style={{ flexDirection: "row" }}>
+                                        {[...Array(Number(markup.stars))].map(
+                                            (v, i) => (
+                                                <span key={i}>
+                                                    <StarSolidStyle />
+                                                </span>
+                                            )
+                                        )}
+                                    </div>
                                 </MessageBox>
-                            </Popup>
-                        ) : null}
+                            ) : null}
+                        </Marker>
                     </React.Fragment>
                 ))}
 

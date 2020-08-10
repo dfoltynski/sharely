@@ -5,13 +5,9 @@
   <h3 align="center">Share your experience around the world</h3>
 </p>
 
--   [ ] BACKEND - models - UserOpinionsSchema && MarkupLocationSchema - gridfs for storing profie pics
--   [ ] BACKEND - controllers - pushPinsToDb - profile pic, visit day
+-   [ ] BACKEND - server - sanitize noSQL
+-   [ ] BACKEND - server - sanitize xss
 -   [ ] BACKEND - ??????
 
--   [ ] BOTH - make it realtime - socketio and socket.io-client [e.g. markup display in real time]
-
--   [ ] FRONTEND - register page - profile pic upload
--   [ ] FRONTEND - map page - display profile pic
 -   [ ] FRONTEND - map page - prettier stars
 -   [ ] FRONTEND - ?????

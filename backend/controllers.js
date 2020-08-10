@@ -5,8 +5,8 @@ const jwt = require("jsonwebtoken");
 const { User, UserOpinions, MarkupLocation } = require("./models");
 
 exports.authToken = (req, res, next) => {
-    const { email } = req.user;
-    res.sendStatus(200);
+    const { name } = req.user;
+    res.json({ name });
 };
 
 const saltRounds = 12;
@@ -21,6 +21,7 @@ const createAndSendToken = (user, res) => {
     const payload = {
         id: user._id,
         email: user.email,
+        name: user.name,
     };
 
     jwt.sign(
@@ -92,7 +93,7 @@ exports.loginUserController = async (req, res) => {
 };
 
 exports.pushPinsToDb = async (req, res) => {
-    const { lnglats, comments, stars } = req.body;
+    const { name, where, lnglats, comments, stars } = req.body;
 
     // return MarkupLocation.create({
     // markup: [{ lnglats, comments, stars }],
@@ -103,7 +104,7 @@ exports.pushPinsToDb = async (req, res) => {
         {},
         {
             $push: {
-                markup: { lnglats, comments, stars },
+                markup: { name, where, lnglats, comments, stars },
             },
         },
         { new: true, useFindAndModify: false }
