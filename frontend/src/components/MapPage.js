@@ -2,17 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import Geocoder from "react-mapbox-gl-geocoder";
 import ReactMapGL, { Marker, NavigationControl, Popup } from "react-map-gl";
 import axios from "axios";
-import _ from "lodash";
+import socketIOClient from "socket.io-client";
 
 import {
     FormContainer,
     InputText,
     InputSubmit,
     Form,
-    SearchPanel,
-    SearchInput,
-    SimpleButton,
-    SendIconStyle,
     Markup,
     LogoutButton,
     TextArea,
@@ -21,14 +17,14 @@ import {
 } from "./styledcomponents";
 
 const api_url = "http://localhost:8080/api";
+const ENDPOINT = "http://127.0.0.1:8080";
+const socket = socketIOClient(ENDPOINT);
 
 const MapPage = () => {
-    // const socket = socketIOClient("http://127.0.0.1:8080");
-
-    const searchBar = useRef(null);
     const messageValue = useRef(null);
     const starsCount = useRef(null);
     const locationValue = useRef(null);
+
     const [name, setName] = useState("");
     const [showPopup, setShowPopup] = useState(true);
     const [showMessage, setShowMessage] = useState({});
@@ -39,20 +35,30 @@ const MapPage = () => {
         longitude: 9.409537429857792,
         zoom: 2.6,
     });
-    const [pointsOnMap, setPointOnMap] = useState(null);
+    const [lnglats, setLnglats] = useState(null);
     const [markups, setMarkups] = useState([]);
 
     const auth = async () => {
         try {
             let res = await axios.get(`${api_url}/auth-me`, {
                 headers: {
-                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                    "Authorization": `Bearer ${
+                        document.cookie.match(/ey.*/g)[0]
+                    }`,
                 },
             });
             setName(res.data.name);
         } catch (err) {
             if (err) console.log(err);
             localStorage.clear();
+            document.cookie.split(";").forEach(function (c) {
+                document.cookie = c
+                    .replace(/^ +/, "")
+                    .replace(
+                        /=.*/,
+                        "=;expires=" + new Date().toUTCString() + ";path=/"
+                    );
+            });
             window.location = "/";
         }
     };
@@ -65,38 +71,40 @@ const MapPage = () => {
     const addPointOnMap = (e) => {
         e.preventDefault();
 
+        // const socket = socketIOClient(ENDPOINT);
+
+        const markup = {
+            name,
+            where: locationValue.current.value,
+            lnglats,
+            comments: messageValue.current.value,
+            stars: starsCount.current.value,
+        };
+
+        socket.emit("addMarkup", markup);
+
         axios.post(`${api_url}/push-pins-to-db`, {
             name,
             where: locationValue.current.value,
-            lnglats: pointsOnMap,
+            lnglats,
             comments: messageValue.current.value,
             stars: starsCount.current.value,
         });
 
-        setMarkups([
-            ...markups,
-            {
-                name,
-                where: locationValue.current.value,
-                lnglats: pointsOnMap,
-                comments: messageValue.current.value,
-                stars: starsCount.current.value,
-            },
-        ]);
+        // setMarkups([
+        //     ...markups,
+        //     {
+        //         name,
+        //         where: locationValue.current.value,
+        //         lnglats,
+        //         comments: messageValue.current.value,
+        //         stars: starsCount.current.value,
+        //     },
+        // ]);
 
         messageValue.current.value = "";
         starsCount.current.value = null;
         setShowPopup(false);
-    };
-
-    const searchLocation = async (e) => {
-        e.preventDefault();
-        let res = await axios.get(
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${searchBar.current.value}.json?access_token=pk.eyJ1IjoiZHppYWRkYXdpZCIsImEiOiJja2EzMzRzZXMwN2ZoM2ZsOWFhZXdpeGt0In0.sRWxNOOhq4VLBER1For06g`
-        );
-        console.log(`looking for ${searchBar.current.value}`);
-        console.log(res);
-        searchBar.current.value = "";
     };
 
     const onSelected = (viewportt, item) => {
@@ -106,9 +114,14 @@ const MapPage = () => {
     useEffect(() => {
         auth();
         getAllMarkups();
+        socket.on("pushMarkup", (markup) => {
+            console.log("pushMarkup");
+            console.log(markup);
+            setMarkups([...markups, markup]);
+        });
     }, []);
 
-    if (!localStorage.getItem("token")) {
+    if (!document.cookie.match(/ey.*/g)) {
         window.location = "/login";
     } else {
         return (
@@ -120,7 +133,7 @@ const MapPage = () => {
                 touchRotate={true}
                 onDblClick={(e) => {
                     const [longitude, latitude] = e.lngLat;
-                    setPointOnMap({ longitude, latitude });
+                    setLnglats({ longitude, latitude });
                     setShowPopup(true);
                 }}
             >
@@ -135,17 +148,27 @@ const MapPage = () => {
                 <LogoutButton
                     onClick={() => {
                         localStorage.clear();
+                        document.cookie.split(";").forEach(function (c) {
+                            document.cookie = c
+                                .replace(/^ +/, "")
+                                .replace(
+                                    /=.*/,
+                                    "=;expires=" +
+                                        new Date().toUTCString() +
+                                        ";path=/"
+                                );
+                        });
                         window.location = "/";
                     }}
                 >
                     Logout
                 </LogoutButton>
 
-                {pointsOnMap && showPopup ? (
+                {lnglats && showPopup ? (
                     <>
                         <Marker
-                            latitude={pointsOnMap.latitude}
-                            longitude={pointsOnMap.longitude}
+                            latitude={lnglats.latitude}
+                            longitude={lnglats.longitude}
                             offsetLeft={-20}
                             offsetTop={-10}
                         >
@@ -158,8 +181,8 @@ const MapPage = () => {
                             ></Markup>
                         </Marker>
                         <Popup
-                            latitude={pointsOnMap.latitude}
-                            longitude={pointsOnMap.longitude}
+                            latitude={lnglats.latitude}
+                            longitude={lnglats.longitude}
                             offsetLeft={-4}
                             offsetTop={15}
                             dynamicPosition={true}
@@ -187,7 +210,6 @@ const MapPage = () => {
                                         ref={messageValue}
                                         placeholder="Tell something to the world..."
                                     ></TextArea>
-                                    {/* replace with real stars */}
                                     <InputText
                                         ref={starsCount}
                                         type="number"
@@ -195,7 +217,6 @@ const MapPage = () => {
                                         max="5"
                                         min="1"
                                     ></InputText>
-                                    {/* replace with real stars */}
                                     <InputSubmit
                                         value="Share"
                                         style={{
@@ -256,6 +277,8 @@ const MapPage = () => {
                                             padding: "1em 2em",
                                             fontSize: "18px",
                                             margin: "0.2em 0",
+                                            boxShadow:
+                                                "0px 0px 4px rgba(0, 0, 0, 0.25)",
                                         }}
                                     >
                                         {markup.comments}

@@ -3,7 +3,6 @@ import { ReactComponent as Logo } from "../logo.svg";
 import { ReactComponent as SearchIcon } from "../search-location-solid.svg";
 import { ReactComponent as SendIcon } from "../paper-plane-solid.svg";
 import { ReactComponent as StarSolid } from "../star-solid.svg";
-import { ReactComponent as StarRegular } from "../star-regular.svg";
 
 export const StarSolidStyle = styled(StarSolid)`
     color: gold;

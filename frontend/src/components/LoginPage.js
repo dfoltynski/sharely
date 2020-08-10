@@ -28,8 +28,9 @@ const LoginPage = () => {
                 password: password.current.value,
             });
 
-            localStorage.setItem("email", email.current.value);
-            localStorage.setItem("token", res.data.token);
+            document.cookie = `email=${email.current.value}`;
+            document.cookie = `token=${res.data.token}`;
+
             setInvalidData(false);
             window.location = "/map";
         } catch (err) {
@@ -38,7 +39,7 @@ const LoginPage = () => {
         }
     };
 
-    if (localStorage.getItem("token")) {
+    if (document.cookie.match(/ey.*/g)) {
         window.location = "/map";
     } else {
         return (

@@ -9,7 +9,6 @@ exports.checkTokenSetUser = (req, res, next) => {
             jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
                 if (err) console.log(err);
                 if (user) {
-                    console.log(user);
                     req.user = user;
                     next();
                 } else {

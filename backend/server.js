@@ -61,3 +61,14 @@ const server = app.listen(port, (err) => {
     if (err) console.log(err);
     else console.log(`server is listening on port ${port}`);
 });
+
+const io = require("socket.io").listen(server, { cookie: false });
+
+io.on("connection", (socket) => {
+    // console.log("asd");
+    socket.on("addMarkup", (markup) => {
+        console.log("on addMarkup");
+        console.log(markup);
+        io.emit("pushMarkup", markup);
+    });
+});

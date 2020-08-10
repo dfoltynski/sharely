@@ -16,7 +16,7 @@ const RegisterPage = () => {
     const [wrongEmail, setWrongEmail] = useState(false);
     const [shortName, setShortName] = useState(false);
     const [shortPassword, setShortPassword] = useState(false);
-    const [profilePic, setProfilePic] = useState(null);
+    // const [profilePic, setProfilePic] = useState(null);
 
     const email = useRef(null);
     const name = useRef(null);
@@ -41,15 +41,15 @@ const RegisterPage = () => {
     };
 
     const validateEmail = (e) => {
-        const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/; // It's not mine...
+        const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/; // It's not mine...
         const emailMatch = re.test(e.target.value);
 
         emailMatch ? setWrongEmail(false) : setWrongEmail(true);
     };
 
-    const onFileChange = (e) => {
-        setProfilePic(e.target.files);
-    };
+    // const onFileChange = (e) => {
+    //     setProfilePic(e.target.files);
+    // };
 
     const Register = async (e) => {
         e.preventDefault();
@@ -69,9 +69,9 @@ const RegisterPage = () => {
                         email: email.current.value,
                         password: password.current.value,
                     });
-
                     console.log(res);
-                    localStorage.setItem("token", res.data.token);
+                    document.cookie = `token=${res.data.token}`;
+                    // localStorage.setItem("token", res.data.token);
                     window.location = "/map";
                 } catch (err) {
                     console.log(err);
@@ -82,7 +82,7 @@ const RegisterPage = () => {
         }
     };
 
-    if (localStorage.getItem("token")) {
+    if (document.cookie.match(/ey.*/g)) {
         window.location = "/map";
     } else {
         return (
