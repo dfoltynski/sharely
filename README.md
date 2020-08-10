@@ -5,9 +5,4 @@
   <h3 align="center">Share your experience around the world</h3>
 </p>
 
--   [ ] BACKEND - server - sanitize noSQL
--   [ ] BACKEND - server - sanitize xss
--   [ ] BACKEND - ??????
-
--   [ ] FRONTEND - map page - prettier stars
--   [ ] FRONTEND - ?????
+### work in progress
