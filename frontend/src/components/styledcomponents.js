@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { ReactComponent as Logo } from "../logo.svg";
 import { ReactComponent as SearchIcon } from "../search-location-solid.svg";
 import { ReactComponent as SendIcon } from "../paper-plane-solid.svg";
@@ -167,4 +167,30 @@ export const MessageBox = styled.div`
     padding: 1em 1.3em;
     border-radius: 6px;
     background-color: #ffffff;
+`;
+
+const loadingEffect = keyframes`
+0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+`;
+
+export const Loading = styled.div`
+    // top: 50%;
+    // left: 50%;
+    // transfrom: translate(-50%, -50%);
+    // box-sizing: border-box;
+    // display: block;
+
+    position: absolute;
+    width: 15em;
+    height: 15em;
+    margin: 8px;
+    border: 25px solid #f5f5f5;
+    border-radius: 50%;
+    animation: ${loadingEffect} 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    border-color: #f5f5f5 transparent transparent transparent;
 `;

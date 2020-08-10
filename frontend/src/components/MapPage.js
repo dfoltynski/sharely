@@ -14,6 +14,8 @@ import {
     TextArea,
     MessageBox,
     StarSolidStyle,
+    Loading,
+    Wrapper,
 } from "./styledcomponents";
 
 const api_url = "http://localhost:8080/api";
@@ -25,6 +27,7 @@ const MapPage = () => {
     const starsCount = useRef(null);
     const locationValue = useRef(null);
 
+    const [isLoading, setIsLoading] = useState(true);
     const [name, setName] = useState("");
     const [showPopup, setShowPopup] = useState(true);
     const [showMessage, setShowMessage] = useState({});
@@ -50,7 +53,6 @@ const MapPage = () => {
             setName(res.data.name);
         } catch (err) {
             if (err) console.log(err);
-            localStorage.clear();
             document.cookie.split(";").forEach(function (c) {
                 document.cookie = c
                     .replace(/^ +/, "")
@@ -91,16 +93,16 @@ const MapPage = () => {
             stars: starsCount.current.value,
         });
 
-        // setMarkups([
-        //     ...markups,
-        //     {
-        //         name,
-        //         where: locationValue.current.value,
-        //         lnglats,
-        //         comments: messageValue.current.value,
-        //         stars: starsCount.current.value,
-        //     },
-        // ]);
+        setMarkups([
+            ...markups,
+            {
+                name,
+                where: locationValue.current.value,
+                lnglats,
+                comments: messageValue.current.value,
+                stars: starsCount.current.value,
+            },
+        ]);
 
         messageValue.current.value = "";
         starsCount.current.value = null;
@@ -111,14 +113,15 @@ const MapPage = () => {
         setViewport(viewportt);
     };
 
+    socket.on("pushMarkup", (markup) => {
+        console.log("pushMarkup");
+
+        setMarkups([...markups, markup]);
+    });
+
     useEffect(() => {
         auth();
         getAllMarkups();
-        socket.on("pushMarkup", (markup) => {
-            console.log("pushMarkup");
-            console.log(markup);
-            setMarkups([...markups, markup]);
-        });
     }, []);
 
     if (!document.cookie.match(/ey.*/g)) {
@@ -136,171 +139,188 @@ const MapPage = () => {
                     setLnglats({ longitude, latitude });
                     setShowPopup(true);
                 }}
+                onLoad={(e) => setIsLoading(false)}
             >
-                <Geocoder
-                    mapboxApiAccessToken="pk.eyJ1IjoiZHppYWRkYXdpZCIsImEiOiJja2EzMzRzZXMwN2ZoM2ZsOWFhZXdpeGt0In0.sRWxNOOhq4VLBER1For06g"
-                    onSelected={onSelected}
-                    viewport={viewport}
-                    hideOnSelect={true}
-                    limit={10}
-                />
-
-                <LogoutButton
-                    onClick={() => {
-                        localStorage.clear();
-                        document.cookie.split(";").forEach(function (c) {
-                            document.cookie = c
-                                .replace(/^ +/, "")
-                                .replace(
-                                    /=.*/,
-                                    "=;expires=" +
-                                        new Date().toUTCString() +
-                                        ";path=/"
-                                );
-                        });
-                        window.location = "/";
-                    }}
-                >
-                    Logout
-                </LogoutButton>
-
-                {lnglats && showPopup ? (
+                {isLoading ? (
+                    <Wrapper
+                        style={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                        }}
+                    >
+                        <Loading />
+                    </Wrapper>
+                ) : (
                     <>
-                        <Marker
-                            latitude={lnglats.latitude}
-                            longitude={lnglats.longitude}
-                            offsetLeft={-20}
-                            offsetTop={-10}
-                        >
-                            <Markup
-                                onClick={() => setShowPopup(!showPopup)}
-                                style={{
-                                    height: `${3 * viewport.zoom}px`,
-                                    width: `${3 * viewport.zoom}px`,
-                                }}
-                            ></Markup>
-                        </Marker>
-                        <Popup
-                            latitude={lnglats.latitude}
-                            longitude={lnglats.longitude}
-                            offsetLeft={-4}
-                            offsetTop={15}
-                            dynamicPosition={true}
-                            closeButton={true}
-                            closeOnClick={false}
-                            onClose={() => setShowPopup(false)}
-                            anchor="top"
-                            style={{
-                                height: `${3 * viewport.zoom}px`,
-                                width: `${3 * viewport.zoom}px`,
+                        <Geocoder
+                            mapboxApiAccessToken="pk.eyJ1IjoiZHppYWRkYXdpZCIsImEiOiJja2EzMzRzZXMwN2ZoM2ZsOWFhZXdpeGt0In0.sRWxNOOhq4VLBER1For06g"
+                            onSelected={onSelected}
+                            viewport={viewport}
+                            hideOnSelect={true}
+                            limit={10}
+                        />
+                        <LogoutButton
+                            onClick={() => {
+                                // localStorage.clear();
+                                document.cookie
+                                    .split(";")
+                                    .forEach(function (c) {
+                                        document.cookie = c
+                                            .replace(/^ +/, "")
+                                            .replace(
+                                                /=.*/,
+                                                "=;expires=" +
+                                                    new Date().toUTCString() +
+                                                    ";path=/"
+                                            );
+                                    });
+                                window.location = "/";
                             }}
                         >
-                            <FormContainer>
-                                <Form onSubmit={addPointOnMap}>
-                                    <InputText
-                                        value={name}
-                                        disabled
-                                        style={{ padding: "0.5em 1em" }}
-                                    ></InputText>
-                                    <InputText
-                                        ref={locationValue}
-                                        placeholder="Where have you been?"
-                                    ></InputText>
-                                    <TextArea
-                                        ref={messageValue}
-                                        placeholder="Tell something to the world..."
-                                    ></TextArea>
-                                    <InputText
-                                        ref={starsCount}
-                                        type="number"
-                                        placeholder="Rate 1-5 star"
-                                        max="5"
-                                        min="1"
-                                    ></InputText>
-                                    <InputSubmit
-                                        value="Share"
+                            Logout
+                        </LogoutButton>
+                        {lnglats && showPopup ? (
+                            <>
+                                <Marker
+                                    latitude={lnglats.latitude}
+                                    longitude={lnglats.longitude}
+                                    offsetLeft={-20}
+                                    offsetTop={-10}
+                                >
+                                    <Markup
+                                        onClick={() => setShowPopup(!showPopup)}
                                         style={{
-                                            color: "#ffffff",
-                                            fontWeight: "bold",
-                                            background:
-                                                "linear-gradient(90deg, #11998E 0%, #38EF7D 100%), #47BA67",
+                                            height: `${3 * viewport.zoom}px`,
+                                            width: `${3 * viewport.zoom}px`,
                                         }}
-                                    ></InputSubmit>
-                                </Form>
-                            </FormContainer>
-                        </Popup>
+                                    ></Markup>
+                                </Marker>
+                                <Popup
+                                    latitude={lnglats.latitude}
+                                    longitude={lnglats.longitude}
+                                    offsetLeft={-4}
+                                    offsetTop={15}
+                                    dynamicPosition={true}
+                                    closeButton={true}
+                                    closeOnClick={false}
+                                    onClose={() => setShowPopup(false)}
+                                    anchor="top"
+                                    style={{
+                                        height: `${3 * viewport.zoom}px`,
+                                        width: `${3 * viewport.zoom}px`,
+                                    }}
+                                >
+                                    <FormContainer>
+                                        <Form onSubmit={addPointOnMap}>
+                                            <InputText
+                                                value={name}
+                                                disabled
+                                                style={{ padding: "0.5em 1em" }}
+                                            ></InputText>
+                                            <InputText
+                                                ref={locationValue}
+                                                placeholder="Where have you been?"
+                                            ></InputText>
+                                            <TextArea
+                                                ref={messageValue}
+                                                placeholder="Tell something to the world..."
+                                            ></TextArea>
+                                            <InputText
+                                                ref={starsCount}
+                                                type="number"
+                                                placeholder="Rate 1-5 star"
+                                                max="5"
+                                                min="1"
+                                            ></InputText>
+                                            <InputSubmit
+                                                value="Share"
+                                                style={{
+                                                    color: "#ffffff",
+                                                    fontWeight: "bold",
+                                                    background:
+                                                        "linear-gradient(90deg, #11998E 0%, #38EF7D 100%), #47BA67",
+                                                }}
+                                            ></InputSubmit>
+                                        </Form>
+                                    </FormContainer>
+                                </Popup>
+                            </>
+                        ) : null}
+                        {markups.map((markup, index) => (
+                            <React.Fragment key={index}>
+                                <Marker
+                                    latitude={markup.lnglats.latitude}
+                                    longitude={markup.lnglats.longitude}
+                                >
+                                    <Markup
+                                        onClick={() =>
+                                            setShowMessage({
+                                                [index]: !showMessage[index],
+                                            })
+                                        }
+                                        style={{
+                                            zIndex: "-1",
+                                            height: `${3 * viewport.zoom}px`,
+                                            width: `${3 * viewport.zoom}px`,
+                                        }}
+                                    ></Markup>
+                                    {showMessage[index] ? (
+                                        <MessageBox>
+                                            <div
+                                                style={{
+                                                    width: "100%",
+                                                    fontSize: "14px",
+                                                }}
+                                            >
+                                                {markup.name}
+                                            </div>
+                                            <div
+                                                style={{
+                                                    width: "100%",
+                                                    fontSize: "14px",
+                                                }}
+                                            >
+                                                {markup.where}
+                                            </div>
+                                            <div
+                                                style={{
+                                                    width: "100%",
+                                                    backgroundColor: "#ebebeb",
+                                                    borderRadius: "6px",
+                                                    border: "none",
+                                                    padding: "1em 2em",
+                                                    fontSize: "18px",
+                                                    margin: "0.2em 0",
+                                                    boxShadow:
+                                                        "0px 0px 4px rgba(0, 0, 0, 0.25)",
+                                                }}
+                                            >
+                                                {markup.comments}
+                                            </div>
+                                            <div
+                                                style={{ flexDirection: "row" }}
+                                            >
+                                                {[
+                                                    ...Array(
+                                                        Number(markup.stars)
+                                                    ),
+                                                ].map((v, i) => (
+                                                    <span key={i}>
+                                                        <StarSolidStyle />
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </MessageBox>
+                                    ) : null}
+                                </Marker>
+                            </React.Fragment>
+                        ))}
+                        <div style={{ position: "absolute", right: 0 }}>
+                            <NavigationControl />
+                        </div>
                     </>
-                ) : null}
-
-                {markups.map((markup, index) => (
-                    <React.Fragment key={index}>
-                        <Marker
-                            latitude={markup.lnglats.latitude}
-                            longitude={markup.lnglats.longitude}
-                        >
-                            <Markup
-                                onClick={() =>
-                                    setShowMessage({
-                                        [index]: !showMessage[index],
-                                    })
-                                }
-                                style={{
-                                    zIndex: "-1",
-                                    height: `${3 * viewport.zoom}px`,
-                                    width: `${3 * viewport.zoom}px`,
-                                }}
-                            ></Markup>
-                            {showMessage[index] ? (
-                                <MessageBox>
-                                    <div
-                                        style={{
-                                            width: "100%",
-                                            fontSize: "14px",
-                                        }}
-                                    >
-                                        {markup.name}
-                                    </div>
-                                    <div
-                                        style={{
-                                            width: "100%",
-                                            fontSize: "14px",
-                                        }}
-                                    >
-                                        {markup.where}
-                                    </div>
-                                    <div
-                                        style={{
-                                            width: "100%",
-                                            backgroundColor: "#ebebeb",
-                                            borderRadius: "6px",
-                                            border: "none",
-                                            padding: "1em 2em",
-                                            fontSize: "18px",
-                                            margin: "0.2em 0",
-                                            boxShadow:
-                                                "0px 0px 4px rgba(0, 0, 0, 0.25)",
-                                        }}
-                                    >
-                                        {markup.comments}
-                                    </div>
-                                    <div style={{ flexDirection: "row" }}>
-                                        {[...Array(Number(markup.stars))].map(
-                                            (v, i) => (
-                                                <span key={i}>
-                                                    <StarSolidStyle />
-                                                </span>
-                                            )
-                                        )}
-                                    </div>
-                                </MessageBox>
-                            ) : null}
-                        </Marker>
-                    </React.Fragment>
-                ))}
-
-                <div style={{ position: "absolute", right: 0 }}>
-                    <NavigationControl />
-                </div>
+                )}
             </ReactMapGL>
         );
     }
