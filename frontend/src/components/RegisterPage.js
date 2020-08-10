@@ -1,13 +1,14 @@
 import React, { useState, useRef } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
+import GoBackHome from "./GoBackHome";
 import {
     Wrapper,
-    LogoStyle,
-    LogoContainer,
     FormContainer,
     InputText,
     InputSubmit,
     Form,
+    SimpleButton,
 } from "./styledcomponents";
 
 const RegisterPage = () => {
@@ -16,7 +17,6 @@ const RegisterPage = () => {
     const [wrongEmail, setWrongEmail] = useState(false);
     const [shortName, setShortName] = useState(false);
     const [shortPassword, setShortPassword] = useState(false);
-    // const [profilePic, setProfilePic] = useState(null);
 
     const email = useRef(null);
     const name = useRef(null);
@@ -47,10 +47,6 @@ const RegisterPage = () => {
         emailMatch ? setWrongEmail(false) : setWrongEmail(true);
     };
 
-    // const onFileChange = (e) => {
-    //     setProfilePic(e.target.files);
-    // };
-
     const Register = async (e) => {
         e.preventDefault();
 
@@ -71,7 +67,6 @@ const RegisterPage = () => {
                     });
                     console.log(res);
                     document.cookie = `token=${res.data.token}`;
-                    // localStorage.setItem("token", res.data.token);
                     window.location = "/map";
                 } catch (err) {
                     console.log(err);
@@ -87,10 +82,7 @@ const RegisterPage = () => {
     } else {
         return (
             <Wrapper>
-                <LogoContainer>
-                    <LogoStyle></LogoStyle>
-                    sharely
-                </LogoContainer>
+                <GoBackHome />
 
                 <FormContainer>
                     <Form onSubmit={Register}>
@@ -148,6 +140,22 @@ const RegisterPage = () => {
                             style={{ color: "#ffffff", fontWeight: "bold" }}
                             value="Register"
                         />
+                        <Link to="/login">
+                            <SimpleButton
+                                style={{
+                                    padding: " 0.75em 2em",
+                                    background:
+                                        "linear-gradient(90deg, #ff416c 0%, #ff4b2b 100%), #c64b4b",
+                                    fontWeight: "bold",
+                                    color: "#ffffff",
+                                    marginTop: "0.5em",
+                                    marginRight: "0.5em",
+                                    borderRadius: "6px",
+                                }}
+                            >
+                                Login
+                            </SimpleButton>
+                        </Link>
                     </Form>
                 </FormContainer>
             </Wrapper>

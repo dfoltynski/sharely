@@ -1,10 +1,10 @@
 import React, { useRef, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import GoBackHome from "./GoBackHome";
+
 import {
     Wrapper,
-    LogoStyle,
-    LogoContainer,
     FormContainer,
     InputText,
     InputSubmit,
@@ -44,10 +44,7 @@ const LoginPage = () => {
     } else {
         return (
             <Wrapper>
-                <LogoContainer>
-                    <LogoStyle></LogoStyle>
-                    sharely
-                </LogoContainer>
+                <GoBackHome />
 
                 <FormContainer>
                     <Form onSubmit={Login}>

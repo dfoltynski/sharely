@@ -73,8 +73,6 @@ const MapPage = () => {
     const addPointOnMap = (e) => {
         e.preventDefault();
 
-        // const socket = socketIOClient(ENDPOINT);
-
         const markup = {
             name,
             where: locationValue.current.value,
@@ -162,7 +160,6 @@ const MapPage = () => {
                         />
                         <LogoutButton
                             onClick={() => {
-                                // localStorage.clear();
                                 document.cookie
                                     .split(";")
                                     .forEach(function (c) {
