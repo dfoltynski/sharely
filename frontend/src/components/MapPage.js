@@ -27,6 +27,7 @@ const MapPage = () => {
     const messageValue = useRef(null);
     const starsCount = useRef(null);
     const locationValue = useRef(null);
+    const friendAdded = useRef(null);
 
     const [isLoading, setIsLoading] = useState(true);
     const [name, setName] = useState("");
@@ -123,13 +124,32 @@ const MapPage = () => {
         setMarkups([...markups, markup]);
     });
 
-    const addFriend = (friendsEmail) => {
-        console.log("Friend's email: ", friendsEmail);
-
+    const addFriend = (friendsEmail, friendsName) => {
         axios.post(`${api_url}/add-friend`, {
             userEmail: email,
             friendsEmail,
         });
+
+        friendAdded.current.style.transition = "0.5s ease-in-out";
+        friendAdded.current.style.borderRadius = "6px";
+        friendAdded.current.style.background =
+            "linear-gradient(90deg, #11998E 0%, #38EF7D 100%), #47BA67";
+        friendAdded.current.style.display = "inline-block";
+        friendAdded.current.style.padding = "5px 10px";
+        friendAdded.current.style.fontWeight = "bold";
+        friendAdded.current.insertAdjacentHTML(
+            "beforeend",
+            `<p>${friendsName} has been added to your friends!</p>`
+        );
+
+        setTimeout(() => {
+            friendAdded.current.style.borderRadius = "0px";
+            friendAdded.current.style.backgroundColor = "#ffffff";
+            friendAdded.current.style.display = "inline-block";
+            friendAdded.current.style.opacity = "none";
+            friendAdded.current.style.padding = "0px";
+            friendAdded.current.querySelector(":last-child").remove();
+        }, 2500);
     };
 
     useEffect(() => {
@@ -173,6 +193,20 @@ const MapPage = () => {
                             hideOnSelect={true}
                             limit={10}
                         />
+                        <div
+                            style={{
+                                width: "100%",
+                                display: "flex",
+                                justifyContent: "center",
+                                position: "absolute",
+                            }}
+                        >
+                            <div
+                                ref={friendAdded}
+                                style={{ color: "#ffffff" }}
+                            ></div>
+                        </div>
+
                         <LogoutButton
                             onClick={() => {
                                 document.cookie
@@ -201,6 +235,7 @@ const MapPage = () => {
                                     offsetTop={-10}
                                 >
                                     <Markup
+                                        className="marker__markup"
                                         onClick={() => setShowPopup(!showPopup)}
                                         style={{
                                             height: `${3 * viewport.zoom}px`,
@@ -221,6 +256,7 @@ const MapPage = () => {
                                     style={{
                                         height: `${3 * viewport.zoom}px`,
                                         width: `${3 * viewport.zoom}px`,
+                                        zIndex: "9999999",
                                     }}
                                 >
                                     <FormContainer>
@@ -266,6 +302,7 @@ const MapPage = () => {
                                     longitude={markup.lnglats.longitude}
                                 >
                                     <Markup
+                                        className="marker__markup"
                                         onClick={() =>
                                             setShowMessage({
                                                 [index]: !showMessage[index],
@@ -315,7 +352,8 @@ const MapPage = () => {
                                                                 }}
                                                                 onClick={() =>
                                                                     addFriend(
-                                                                        markup.email
+                                                                        markup.email,
+                                                                        markup.name
                                                                     )
                                                                 }
                                                             >
