@@ -5,8 +5,8 @@ const jwt = require("jsonwebtoken");
 const { User, UserOpinions, MarkupLocation } = require("./models");
 
 exports.authToken = (req, res, next) => {
-    const { name } = req.user;
-    res.json({ name });
+    const { name, email } = req.user;
+    res.json({ name, email });
 };
 
 const saltRounds = 12;
@@ -93,7 +93,7 @@ exports.loginUserController = async (req, res) => {
 };
 
 exports.pushPinsToDb = async (req, res) => {
-    const { name, where, lnglats, comments, stars } = req.body;
+    const { email, name, where, lnglats, comments, stars } = req.body;
 
     // return MarkupLocation.create({
     // markup: [{ lnglats, comments, stars }],
@@ -103,8 +103,8 @@ exports.pushPinsToDb = async (req, res) => {
     await MarkupLocation.updateMany(
         {},
         {
-            $push: {
-                markup: { name, where, lnglats, comments, stars },
+            $addToSet: {
+                markup: { email, name, where, lnglats, comments, stars },
             },
         },
         { new: true, useFindAndModify: false }
@@ -116,4 +116,20 @@ exports.pushPinsToDb = async (req, res) => {
 exports.listAllMarkups = async (req, res) => {
     const info = await MarkupLocation.find();
     res.status(200).send({ info });
+};
+
+exports.addFriend = async (req, res) => {
+    const { userEmail, friendsEmail } = req.body;
+
+    await User.findOneAndUpdate(
+        { email: userEmail },
+        {
+            $addToSet: {
+                friends: friendsEmail,
+            },
+        },
+        { new: true, useFindAndModify: false }
+    );
+
+    res.status(200);
 };

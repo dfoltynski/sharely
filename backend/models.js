@@ -13,6 +13,7 @@ const UserSchema = new Schema(
         email: requiredString,
         password: requiredString,
         avatar_url: { type: String },
+        friends: [],
     },
     {
         timestamps: { createdAt: "created_at", updatedAt: "updated_at" },
@@ -21,9 +22,6 @@ const UserSchema = new Schema(
 
 const UserOpinionsSchema = new Schema(
     {
-        // lnglat: [],
-        // stars: [],
-        // comments: [],
         markup: [],
         user: {
             type: mongoose.Schema.Types.ObjectId,

@@ -1,8 +1,15 @@
 import styled, { keyframes } from "styled-components";
-import { ReactComponent as Logo } from "../logo.svg";
-import { ReactComponent as SearchIcon } from "../search-location-solid.svg";
-import { ReactComponent as SendIcon } from "../paper-plane-solid.svg";
-import { ReactComponent as StarSolid } from "../star-solid.svg";
+import { ReactComponent as Logo } from "../icons/logo.svg";
+import { ReactComponent as SearchIcon } from "../icons/search-location-solid.svg";
+import { ReactComponent as SendIcon } from "../icons/paper-plane-solid.svg";
+import { ReactComponent as StarSolid } from "../icons/star-solid.svg";
+import { ReactComponent as AddFriend } from "../icons/user-plus-solid.svg";
+
+export const AddFriendStyle = styled(AddFriend)`
+    cursor: pointer;
+    color: #4f4f4f;
+    width: 1.5em;
+`;
 
 export const StarSolidStyle = styled(StarSolid)`
     color: gold;

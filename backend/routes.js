@@ -9,6 +9,7 @@ const {
     authToken,
     pushPinsToDb,
     listAllMarkups,
+    addFriend,
 } = require("./controllers");
 
 const storage = multer.diskStorage({
@@ -39,10 +40,10 @@ router.get("/", (req, res) => {
 });
 router.post("/register", upload.single("profilePic"), registerUserController);
 router.post("/login", loginUserController);
+router.post("/push-pins-to-db", pushPinsToDb);
+router.post("/add-friend", addFriend);
 
 router.get("/auth-me", checkTokenSetUser, authToken);
-
-router.post("/push-pins-to-db", pushPinsToDb);
 router.get("/list-all-markups", listAllMarkups);
 
 module.exports = router;

@@ -16,6 +16,7 @@ import {
     StarSolidStyle,
     Loading,
     Wrapper,
+    AddFriendStyle,
 } from "./styledcomponents";
 
 const api_url = "http://localhost:8080/api";
@@ -29,6 +30,7 @@ const MapPage = () => {
 
     const [isLoading, setIsLoading] = useState(true);
     const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
     const [showPopup, setShowPopup] = useState(true);
     const [showMessage, setShowMessage] = useState({});
     const [viewport, setViewport] = useState({
@@ -51,6 +53,7 @@ const MapPage = () => {
                 },
             });
             setName(res.data.name);
+            setEmail(res.data.email);
         } catch (err) {
             if (err) console.log(err);
             document.cookie.split(";").forEach(function (c) {
@@ -74,6 +77,7 @@ const MapPage = () => {
         e.preventDefault();
 
         const markup = {
+            email,
             name,
             where: locationValue.current.value,
             lnglats,
@@ -84,6 +88,7 @@ const MapPage = () => {
         socket.emit("addMarkup", markup);
 
         axios.post(`${api_url}/push-pins-to-db`, {
+            email,
             name,
             where: locationValue.current.value,
             lnglats,
@@ -94,6 +99,7 @@ const MapPage = () => {
         setMarkups([
             ...markups,
             {
+                email,
                 name,
                 where: locationValue.current.value,
                 lnglats,
@@ -116,6 +122,15 @@ const MapPage = () => {
 
         setMarkups([...markups, markup]);
     });
+
+    const addFriend = (friendsEmail) => {
+        console.log("Friend's email: ", friendsEmail);
+
+        axios.post(`${api_url}/add-friend`, {
+            userEmail: email,
+            friendsEmail,
+        });
+    };
 
     useEffect(() => {
         auth();
@@ -270,7 +285,45 @@ const MapPage = () => {
                                                     fontSize: "14px",
                                                 }}
                                             >
-                                                {markup.name}
+                                                <div
+                                                    style={{
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                    }}
+                                                >
+                                                    <span
+                                                        style={{
+                                                            fontSize: "16px",
+                                                        }}
+                                                    >
+                                                        {markup.name}
+                                                    </span>
+                                                    {markup.email ===
+                                                    email ? null : (
+                                                        <span
+                                                            style={{
+                                                                marginLeft:
+                                                                    "1em",
+                                                            }}
+                                                        >
+                                                            <button
+                                                                style={{
+                                                                    background:
+                                                                        "none",
+                                                                    border:
+                                                                        "none",
+                                                                }}
+                                                                onClick={() =>
+                                                                    addFriend(
+                                                                        markup.email
+                                                                    )
+                                                                }
+                                                            >
+                                                                <AddFriendStyle />
+                                                            </button>
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div
                                                 style={{
